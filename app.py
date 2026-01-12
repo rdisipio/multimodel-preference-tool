@@ -4,6 +4,8 @@ from groq import Groq
 from dotenv import load_dotenv
 import json
 from datetime import datetime
+import csv
+from pathlib import Path
 
 # Load environment variables (for local development)
 load_dotenv()
@@ -36,6 +38,39 @@ LENGTH_MAP = {
 
 # Storage for preferences (in-memory for now)
 preferences_data = []
+
+def save_preference_to_storage(question, output_length, selected_model, all_results):
+    """
+    Save preference data to persistent storage.
+    Currently saves to CSV file. Can be extended to use database in the future.
+    Saves all model responses for later comparison.
+    """
+    csv_file = "preferences.csv"
+    file_exists = Path(csv_file).exists()
+    
+    # Prepare all responses as JSON
+    all_responses = {result["model"]: result["response"] for result in all_results}
+    
+    # Write to CSV
+    with open(csv_file, 'a', newline='', encoding='utf-8') as f:
+        writer = csv.writer(f)
+        
+        # Write header if file is new
+        if not file_exists:
+            writer.writerow([
+                'timestamp', 'question', 'output_length', 
+                'selected_model', 'all_models_compared', 'all_responses_json'
+            ])
+        
+        # Write preference data
+        writer.writerow([
+            datetime.now().isoformat(),
+            question,
+            output_length,
+            selected_model,
+            '|'.join(all_responses.keys()),
+            json.dumps(all_responses, ensure_ascii=False)
+        ])
 
 def query_model(model_name, question, max_tokens):
     """Query a single model via Groq API"""
@@ -298,10 +333,32 @@ with gr.Blocks(title="Multi-Model LLM Comparison Tool") as demo:
             pref_btn_4: btn_updates["pref_btn_4"]
         }
     
-    def record_preference(model_index):
+    def record_preference(model_index, question, output_length, results):
         """Record user preference for a specific model"""
-        # TODO: Implement preference recording logic
-        return f"✓ Preference recorded for model {model_index + 1}"
+        if not results or model_index >= len(results):
+            return {
+                input_section: gr.Column(visible=True),
+                results_section: gr.Column(visible=False),
+                error_msg: gr.Markdown(visible=False)
+            }
+        
+        # Get selected model info
+        selected_model = results[model_index]["model"]
+        
+        # Save preference using storage function with all results
+        save_preference_to_storage(
+            question=question,
+            output_length=output_length,
+            selected_model=selected_model,
+            all_results=results
+        )
+        
+        # Return to input screen
+        return {
+            input_section: gr.Column(visible=True),
+            results_section: gr.Column(visible=False),
+            error_msg: gr.Markdown(visible=False)
+        }
     
     def go_back():
         """Return to input screen"""
@@ -327,23 +384,27 @@ with gr.Blocks(title="Multi-Model LLM Comparison Tool") as demo:
     
     # Preference button handlers
     pref_btn_1.click(
-        fn=lambda: record_preference(0),
-        outputs=[preference_status]
+        fn=lambda q, ol, r: record_preference(0, q, ol, r),
+        inputs=[question_input, output_length, results_state],
+        outputs=[input_section, results_section, error_msg]
     )
     
     pref_btn_2.click(
-        fn=lambda: record_preference(1),
-        outputs=[preference_status]
+        fn=lambda q, ol, r: record_preference(1, q, ol, r),
+        inputs=[question_input, output_length, results_state],
+        outputs=[input_section, results_section, error_msg]
     )
     
     pref_btn_3.click(
-        fn=lambda: record_preference(2),
-        outputs=[preference_status]
+        fn=lambda q, ol, r: record_preference(2, q, ol, r),
+        inputs=[question_input, output_length, results_state],
+        outputs=[input_section, results_section, error_msg]
     )
     
     pref_btn_4.click(
-        fn=lambda: record_preference(3),
-        outputs=[preference_status]
+        fn=lambda q, ol, r: record_preference(3, q, ol, r),
+        inputs=[question_input, output_length, results_state],
+        outputs=[input_section, results_section, error_msg]
     )
 
 if __name__ == "__main__":
