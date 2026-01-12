@@ -251,16 +251,24 @@ with gr.Blocks(title="Multi-Model LLM Comparison Tool") as demo:
         # Results with integrated buttons
         with gr.Column() as results_container:
             result_card_1 = gr.Markdown(visible=False, elem_classes="model-card")
-            pref_btn_1 = gr.Button("This one works for me", elem_classes="preference-button", visible=False)
+            with gr.Row():
+                pref_btn_1 = gr.Button("This one works for me", elem_classes="preference-button", visible=False, scale=4)
+                dont_save_1 = gr.Checkbox(label="Don't save", value=False, visible=False, scale=1)
             
             result_card_2 = gr.Markdown(visible=False, elem_classes="model-card")
-            pref_btn_2 = gr.Button("This one works for me", elem_classes="preference-button", visible=False)
+            with gr.Row():
+                pref_btn_2 = gr.Button("This one works for me", elem_classes="preference-button", visible=False, scale=4)
+                dont_save_2 = gr.Checkbox(label="Don't save", value=False, visible=False, scale=1)
             
             result_card_3 = gr.Markdown(visible=False, elem_classes="model-card")
-            pref_btn_3 = gr.Button("This one works for me", elem_classes="preference-button", visible=False)
+            with gr.Row():
+                pref_btn_3 = gr.Button("This one works for me", elem_classes="preference-button", visible=False, scale=4)
+                dont_save_3 = gr.Checkbox(label="Don't save", value=False, visible=False, scale=1)
             
             result_card_4 = gr.Markdown(visible=False, elem_classes="model-card")
-            pref_btn_4 = gr.Button("This one works for me", elem_classes="preference-button", visible=False)
+            with gr.Row():
+                pref_btn_4 = gr.Button("This one works for me", elem_classes="preference-button", visible=False, scale=4)
+                dont_save_4 = gr.Checkbox(label="Don't save", value=False, visible=False, scale=1)
         
         # Preference status
         preference_status = gr.Markdown()
@@ -283,12 +291,16 @@ with gr.Blocks(title="Multi-Model LLM Comparison Tool") as demo:
                 results_state: [],
                 result_card_1: gr.Markdown(visible=False),
                 pref_btn_1: gr.Button(visible=False),
+                dont_save_1: gr.Checkbox(visible=False),
                 result_card_2: gr.Markdown(visible=False),
                 pref_btn_2: gr.Button(visible=False),
+                dont_save_2: gr.Checkbox(visible=False),
                 result_card_3: gr.Markdown(visible=False),
                 pref_btn_3: gr.Button(visible=False),
+                dont_save_3: gr.Checkbox(visible=False),
                 result_card_4: gr.Markdown(visible=False),
-                pref_btn_4: gr.Button(visible=False)
+                pref_btn_4: gr.Button(visible=False),
+                dont_save_4: gr.Checkbox(visible=False)
             }
         
         # Build results
@@ -299,6 +311,7 @@ with gr.Blocks(title="Multi-Model LLM Comparison Tool") as demo:
         # Create individual card HTML and button updates
         card_updates = {}
         btn_updates = {}
+        checkbox_updates = {}
         
         for i in range(4):
             if i < num_results:
@@ -313,9 +326,11 @@ with gr.Blocks(title="Multi-Model LLM Comparison Tool") as demo:
 {response}"""
                 card_updates[f"result_card_{i+1}"] = gr.Markdown(value=card_content, visible=True)
                 btn_updates[f"pref_btn_{i+1}"] = gr.Button(value=f"This one works for me - {model}", visible=True)
+                checkbox_updates[f"dont_save_{i+1}"] = gr.Checkbox(visible=True, value=False)
             else:
                 card_updates[f"result_card_{i+1}"] = gr.Markdown(visible=False)
                 btn_updates[f"pref_btn_{i+1}"] = gr.Button(visible=False)
+                checkbox_updates[f"dont_save_{i+1}"] = gr.Checkbox(visible=False)
         
         return {
             error_msg: gr.Markdown(visible=False),
@@ -325,15 +340,19 @@ with gr.Blocks(title="Multi-Model LLM Comparison Tool") as demo:
             results_state: results,
             result_card_1: card_updates["result_card_1"],
             pref_btn_1: btn_updates["pref_btn_1"],
+            dont_save_1: checkbox_updates["dont_save_1"],
             result_card_2: card_updates["result_card_2"],
             pref_btn_2: btn_updates["pref_btn_2"],
+            dont_save_2: checkbox_updates["dont_save_2"],
             result_card_3: card_updates["result_card_3"],
             pref_btn_3: btn_updates["pref_btn_3"],
+            dont_save_3: checkbox_updates["dont_save_3"],
             result_card_4: card_updates["result_card_4"],
-            pref_btn_4: btn_updates["pref_btn_4"]
+            pref_btn_4: btn_updates["pref_btn_4"],
+            dont_save_4: checkbox_updates["dont_save_4"]
         }
     
-    def record_preference(model_index, question, output_length, results):
+    def record_preference(model_index, question, output_length, results, dont_save):
         """Record user preference for a specific model"""
         if not results or model_index >= len(results):
             return {
@@ -346,13 +365,14 @@ with gr.Blocks(title="Multi-Model LLM Comparison Tool") as demo:
         # Get selected model info
         selected_model = results[model_index]["model"]
         
-        # Save preference using storage function with all results
-        save_preference_to_storage(
-            question=question,
-            output_length=output_length,
-            selected_model=selected_model,
-            all_results=results
-        )
+        # Save preference using storage function with all results (only if dont_save is False)
+        if not dont_save:
+            save_preference_to_storage(
+                question=question,
+                output_length=output_length,
+                selected_model=selected_model,
+                all_results=results
+            )
         
         # Return to input screen with cleared question and unchecked models
         return {
@@ -376,8 +396,10 @@ with gr.Blocks(title="Multi-Model LLM Comparison Tool") as demo:
         fn=show_results,
         inputs=[question_input, output_length] + model_checkboxes,
         outputs=[error_msg, input_section, results_section, question_display, results_state,
-                 result_card_1, pref_btn_1, result_card_2, pref_btn_2,
-                 result_card_3, pref_btn_3, result_card_4, pref_btn_4]
+                 result_card_1, pref_btn_1, dont_save_1,
+                 result_card_2, pref_btn_2, dont_save_2,
+                 result_card_3, pref_btn_3, dont_save_3,
+                 result_card_4, pref_btn_4, dont_save_4]
     )
     
     back_btn.click(
@@ -387,26 +409,26 @@ with gr.Blocks(title="Multi-Model LLM Comparison Tool") as demo:
     
     # Preference button handlers
     pref_btn_1.click(
-        fn=lambda q, ol, r: record_preference(0, q, ol, r),
-        inputs=[question_input, output_length, results_state],
+        fn=lambda q, ol, r, ds: record_preference(0, q, ol, r, ds),
+        inputs=[question_input, output_length, results_state, dont_save_1],
         outputs=[input_section, results_section, error_msg, question_input] + model_checkboxes
     )
     
     pref_btn_2.click(
-        fn=lambda q, ol, r: record_preference(1, q, ol, r),
-        inputs=[question_input, output_length, results_state],
+        fn=lambda q, ol, r, ds: record_preference(1, q, ol, r, ds),
+        inputs=[question_input, output_length, results_state, dont_save_2],
         outputs=[input_section, results_section, error_msg, question_input] + model_checkboxes
     )
     
     pref_btn_3.click(
-        fn=lambda q, ol, r: record_preference(2, q, ol, r),
-        inputs=[question_input, output_length, results_state],
+        fn=lambda q, ol, r, ds: record_preference(2, q, ol, r, ds),
+        inputs=[question_input, output_length, results_state, dont_save_3],
         outputs=[input_section, results_section, error_msg, question_input] + model_checkboxes
     )
     
     pref_btn_4.click(
-        fn=lambda q, ol, r: record_preference(3, q, ol, r),
-        inputs=[question_input, output_length, results_state],
+        fn=lambda q, ol, r, ds: record_preference(3, q, ol, r, ds),
+        inputs=[question_input, output_length, results_state, dont_save_4],
         outputs=[input_section, results_section, error_msg, question_input] + model_checkboxes
     )
 
