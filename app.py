@@ -215,16 +215,16 @@ with gr.Blocks(title="Multi-Model LLM Comparison Tool") as demo:
         
         # Results with integrated buttons
         with gr.Column() as results_container:
-            result_card_1 = gr.HTML(visible=False)
+            result_card_1 = gr.Markdown(visible=False, elem_classes="model-card")
             pref_btn_1 = gr.Button("This one works for me", elem_classes="preference-button", visible=False)
             
-            result_card_2 = gr.HTML(visible=False)
+            result_card_2 = gr.Markdown(visible=False, elem_classes="model-card")
             pref_btn_2 = gr.Button("This one works for me", elem_classes="preference-button", visible=False)
             
-            result_card_3 = gr.HTML(visible=False)
+            result_card_3 = gr.Markdown(visible=False, elem_classes="model-card")
             pref_btn_3 = gr.Button("This one works for me", elem_classes="preference-button", visible=False)
             
-            result_card_4 = gr.HTML(visible=False)
+            result_card_4 = gr.Markdown(visible=False, elem_classes="model-card")
             pref_btn_4 = gr.Button("This one works for me", elem_classes="preference-button", visible=False)
         
         # Preference status
@@ -246,13 +246,13 @@ with gr.Blocks(title="Multi-Model LLM Comparison Tool") as demo:
                 input_section: gr.Column(visible=True),
                 results_section: gr.Column(visible=False),
                 results_state: [],
-                result_card_1: gr.HTML(visible=False),
+                result_card_1: gr.Markdown(visible=False),
                 pref_btn_1: gr.Button(visible=False),
-                result_card_2: gr.HTML(visible=False),
+                result_card_2: gr.Markdown(visible=False),
                 pref_btn_2: gr.Button(visible=False),
-                result_card_3: gr.HTML(visible=False),
+                result_card_3: gr.Markdown(visible=False),
                 pref_btn_3: gr.Button(visible=False),
-                result_card_4: gr.HTML(visible=False),
+                result_card_4: gr.Markdown(visible=False),
                 pref_btn_4: gr.Button(visible=False)
             }
         
@@ -269,17 +269,17 @@ with gr.Blocks(title="Multi-Model LLM Comparison Tool") as demo:
             if i < num_results:
                 model = results[i]["model"]
                 response = results[i]["response"]
-                card_html = f"""
-                <div class="model-card">
-                    <div class="model-title">{model}</div>
-                    <div class="answer-length">{output_length} answer</div>
-                    <div class="response-text">{response}</div>
-                </div>
-                """
-                card_updates[f"result_card_{i+1}"] = gr.HTML(value=card_html, visible=True)
+                # Use markdown with HTML wrapper for styling
+                card_content = f"""<div class='model-title'>{model}</div>
+<div class='answer-length'>{output_length} answer</div>
+
+---
+
+{response}"""
+                card_updates[f"result_card_{i+1}"] = gr.Markdown(value=card_content, visible=True)
                 btn_updates[f"pref_btn_{i+1}"] = gr.Button(value=f"This one works for me - {model}", visible=True)
             else:
-                card_updates[f"result_card_{i+1}"] = gr.HTML(visible=False)
+                card_updates[f"result_card_{i+1}"] = gr.Markdown(visible=False)
                 btn_updates[f"pref_btn_{i+1}"] = gr.Button(visible=False)
         
         return {
