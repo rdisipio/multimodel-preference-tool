@@ -166,7 +166,7 @@ custom_css = """
 """
 
 # Build Gradio interface
-with gr.Blocks(css=custom_css, title="Multi-Model LLM Comparison Tool") as demo:
+with gr.Blocks(title="Multi-Model LLM Comparison Tool") as demo:
     gr.Markdown("# Multi-Model LLM Comparison Tool")
     gr.Markdown("### Compare answers")
     
@@ -302,4 +302,4 @@ with gr.Blocks(css=custom_css, title="Multi-Model LLM Comparison Tool") as demo:
     )
 
 if __name__ == "__main__":
-    demo.launch()
+    demo.launch(css=custom_css)
