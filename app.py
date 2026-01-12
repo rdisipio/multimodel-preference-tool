@@ -5,11 +5,19 @@ from dotenv import load_dotenv
 import json
 from datetime import datetime
 
-# Load environment variables
+# Load environment variables (for local development)
 load_dotenv()
 
+# Get API key from environment
+api_key = os.getenv("GROQ_API_KEY")
+if not api_key:
+    raise ValueError(
+        "GROQ_API_KEY not found. "
+        "Please add it as a Space secret or in your .env file for local development."
+    )
+
 # Initialize Groq client
-client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+client = Groq(api_key=api_key)
 
 # Model mapping to Groq model IDs
 MODEL_MAP = {
