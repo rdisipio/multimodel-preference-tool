@@ -341,7 +341,7 @@ with gr.Blocks(title="Multi-Model LLM Comparison Tool") as demo:
                 results_section: gr.Column(visible=False),
                 error_msg: gr.Markdown(visible=False),
                 question_input: gr.Textbox(value="")
-            }
+            } | {checkbox: gr.Checkbox(value=False) for checkbox in model_checkboxes}
         
         # Get selected model info
         selected_model = results[model_index]["model"]
@@ -354,13 +354,13 @@ with gr.Blocks(title="Multi-Model LLM Comparison Tool") as demo:
             all_results=results
         )
         
-        # Return to input screen with cleared question
+        # Return to input screen with cleared question and unchecked models
         return {
             input_section: gr.Column(visible=True),
             results_section: gr.Column(visible=False),
             error_msg: gr.Markdown(visible=False),
             question_input: gr.Textbox(value="")
-        }
+        } | {checkbox: gr.Checkbox(value=False) for checkbox in model_checkboxes}
     
     def go_back():
         """Return to input screen"""
@@ -369,7 +369,7 @@ with gr.Blocks(title="Multi-Model LLM Comparison Tool") as demo:
             results_section: gr.Column(visible=False),
             error_msg: gr.Markdown(visible=False),
             question_input: gr.Textbox(value="")
-        }
+        } | {checkbox: gr.Checkbox(value=False) for checkbox in model_checkboxes}
     
     # Event handlers
     compare_btn.click(
@@ -382,32 +382,32 @@ with gr.Blocks(title="Multi-Model LLM Comparison Tool") as demo:
     
     back_btn.click(
         fn=go_back,
-        outputs=[input_section, results_section, error_msg, question_input]
+        outputs=[input_section, results_section, error_msg, question_input] + model_checkboxes
     )
     
     # Preference button handlers
     pref_btn_1.click(
         fn=lambda q, ol, r: record_preference(0, q, ol, r),
         inputs=[question_input, output_length, results_state],
-        outputs=[input_section, results_section, error_msg, question_input]
+        outputs=[input_section, results_section, error_msg, question_input] + model_checkboxes
     )
     
     pref_btn_2.click(
         fn=lambda q, ol, r: record_preference(1, q, ol, r),
         inputs=[question_input, output_length, results_state],
-        outputs=[input_section, results_section, error_msg, question_input]
+        outputs=[input_section, results_section, error_msg, question_input] + model_checkboxes
     )
     
     pref_btn_3.click(
         fn=lambda q, ol, r: record_preference(2, q, ol, r),
         inputs=[question_input, output_length, results_state],
-        outputs=[input_section, results_section, error_msg, question_input]
+        outputs=[input_section, results_section, error_msg, question_input] + model_checkboxes
     )
     
     pref_btn_4.click(
         fn=lambda q, ol, r: record_preference(3, q, ol, r),
         inputs=[question_input, output_length, results_state],
-        outputs=[input_section, results_section, error_msg, question_input]
+        outputs=[input_section, results_section, error_msg, question_input] + model_checkboxes
     )
 
 if __name__ == "__main__":
