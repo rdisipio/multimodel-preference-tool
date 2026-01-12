@@ -173,7 +173,7 @@ with gr.Blocks(title="Multi-Model LLM Comparison Tool") as demo:
     results_state = gr.State([])
     
     with gr.Row():
-        with gr.Column():
+        with gr.Column() as input_section:
             # Question input
             question_input = gr.Textbox(
                 label="Ask a question",
@@ -214,7 +214,10 @@ with gr.Blocks(title="Multi-Model LLM Comparison Tool") as demo:
         question_display = gr.Markdown()
         
         # Results container
-        results_container = gr.Column()
+        results_html = gr.HTML()
+        
+        # Preference buttons container
+        preference_status = gr.Markdown()
         
     # Privacy footer
     gr.Markdown(
@@ -229,47 +232,40 @@ with gr.Blocks(title="Multi-Model LLM Comparison Tool") as demo:
         if error:
             return {
                 error_msg: gr.Markdown(value=f"⚠️ {error}", visible=True),
+                input_section: gr.Column(visible=True),
                 results_section: gr.Column(visible=False),
                 results_state: []
             }
         
-        # Build results UI
-        results_html = []
+        # Build results HTML
+        question_info = f"**Your question:** {question}  \n**Answer length:** {output_length}"
+        
+        results_cards = ""
         for result in results:
             model = result["model"]
             response = result["response"]
             
-            card_html = f"""
+            results_cards += f"""
             <div class="model-card">
                 <div class="model-title">{model}</div>
                 <div class="answer-length">{output_length} answer</div>
                 <div class="response-text">{response}</div>
             </div>
             """
-            results_html.append(card_html)
-        
-        question_info = f"**Your question:** {question}  \n**Answer length:** {output_length}"
-        
-        # Create preference buttons
-        pref_buttons = []
-        for result in results:
-            with gr.Row():
-                btn = gr.Button(
-                    f"This one works for me ({result['model']})",
-                    elem_classes="preference-button"
-                )
-                pref_buttons.append((btn, result['model']))
         
         return {
             error_msg: gr.Markdown(visible=False),
+            input_section: gr.Column(visible=False),
             results_section: gr.Column(visible=True),
             question_display: gr.Markdown(value=question_info),
+            results_html: gr.HTML(value=results_cards),
             results_state: results
         }
     
     def go_back():
         """Return to input screen"""
         return {
+            input_section: gr.Column(visible=True),
             results_section: gr.Column(visible=False),
             error_msg: gr.Markdown(visible=False)
         }
@@ -278,26 +274,12 @@ with gr.Blocks(title="Multi-Model LLM Comparison Tool") as demo:
     compare_btn.click(
         fn=show_results,
         inputs=[question_input, output_length] + model_checkboxes,
-        outputs=[error_msg, results_section, question_display, results_state]
-    ).then(
-        fn=lambda results: [
-            gr.HTML(
-                f"""
-                <div class="model-card">
-                    <div class="model-title">{r['model']}</div>
-                    <div class="answer-length">Medium answer</div>
-                    <div class="response-text">{r['response']}</div>
-                </div>
-                """
-            ) for r in results
-        ] if results else [],
-        inputs=[results_state],
-        outputs=[results_container]
+        outputs=[error_msg, input_section, results_section, question_display, results_html, results_state]
     )
     
     back_btn.click(
         fn=go_back,
-        outputs=[results_section, error_msg]
+        outputs=[input_section, results_section, error_msg]
     )
 
 if __name__ == "__main__":
