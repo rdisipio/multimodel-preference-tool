@@ -1,3 +1,14 @@
+---
+title: Multi-Model LLM Comparison Tool
+emoji: 🤖
+colorFrom: blue
+colorTo: purple
+sdk: gradio
+sdk_version: "4.0.0"
+app_file: app.py
+pinned: false
+---
+
 # Multi-Model LLM Comparison Tool
 
 UX-first interface to choose the best answer among different LLM models.
