@@ -19,13 +19,12 @@ if not api_key:
 # Initialize Groq client
 client = Groq(api_key=api_key)
 
-# Model mapping to Groq model IDs
+# Model mapping to Groq model IDs (updated for current availability)
 MODEL_MAP = {
-    "GPT-4": "llama-3.3-70b-versatile",  # Using Llama as GPT-4 alternative
-    "Claude 3 Opus": "llama-3.1-70b-versatile",  # Using different Llama variant
-    "Gemini Pro": "mixtral-8x7b-32768",
-    "Llama 2 70B": "llama2-70b-4096",
-    "Mistral Large": "mixtral-8x7b-32768"
+    "Llama 3.1 8B": "llama-3.1-8b-instant",
+    "Llama 3.3 70B": "llama-3.3-70b-versatile",
+    "GPT OSS 20B": "openai/gpt-oss-20b",
+    "GPT OSS 120B": "openai/gpt-oss-120b"
 }
 
 # Max tokens for output length
