@@ -216,7 +216,14 @@ with gr.Blocks(title="Multi-Model LLM Comparison Tool") as demo:
         # Results container
         results_html = gr.HTML()
         
-        # Preference buttons container
+        # Preference buttons - create up to 4 buttons (for max 4 models)
+        with gr.Column() as preference_buttons_section:
+            pref_btn_1 = gr.Button("This one works for me", elem_classes="preference-button", visible=False)
+            pref_btn_2 = gr.Button("This one works for me", elem_classes="preference-button", visible=False)
+            pref_btn_3 = gr.Button("This one works for me", elem_classes="preference-button", visible=False)
+            pref_btn_4 = gr.Button("This one works for me", elem_classes="preference-button", visible=False)
+        
+        # Preference status
         preference_status = gr.Markdown()
         
     # Privacy footer
@@ -234,7 +241,11 @@ with gr.Blocks(title="Multi-Model LLM Comparison Tool") as demo:
                 error_msg: gr.Markdown(value=f"⚠️ {error}", visible=True),
                 input_section: gr.Column(visible=True),
                 results_section: gr.Column(visible=False),
-                results_state: []
+                results_state: [],
+                pref_btn_1: gr.Button(visible=False),
+                pref_btn_2: gr.Button(visible=False),
+                pref_btn_3: gr.Button(visible=False),
+                pref_btn_4: gr.Button(visible=False)
             }
         
         # Build results HTML
@@ -253,14 +264,29 @@ with gr.Blocks(title="Multi-Model LLM Comparison Tool") as demo:
             </div>
             """
         
+        # Show buttons for each result
+        num_results = len(results)
+        btn_updates = {
+            pref_btn_1: gr.Button(value=f"This one works for me - {results[0]['model']}", visible=num_results >= 1) if num_results >= 1 else gr.Button(visible=False),
+            pref_btn_2: gr.Button(value=f"This one works for me - {results[1]['model']}", visible=num_results >= 2) if num_results >= 2 else gr.Button(visible=False),
+            pref_btn_3: gr.Button(value=f"This one works for me - {results[2]['model']}", visible=num_results >= 3) if num_results >= 3 else gr.Button(visible=False),
+            pref_btn_4: gr.Button(value=f"This one works for me - {results[3]['model']}", visible=num_results >= 4) if num_results >= 4 else gr.Button(visible=False),
+        }
+        
         return {
             error_msg: gr.Markdown(visible=False),
             input_section: gr.Column(visible=False),
             results_section: gr.Column(visible=True),
             question_display: gr.Markdown(value=question_info),
             results_html: gr.HTML(value=results_cards),
-            results_state: results
+            results_state: results,
+            **btn_updates
         }
+    
+    def record_preference(model_index):
+        """Record user preference for a specific model"""
+        # TODO: Implement preference recording logic
+        return f"✓ Preference recorded for model {model_index + 1}"
     
     def go_back():
         """Return to input screen"""
@@ -274,12 +300,34 @@ with gr.Blocks(title="Multi-Model LLM Comparison Tool") as demo:
     compare_btn.click(
         fn=show_results,
         inputs=[question_input, output_length] + model_checkboxes,
-        outputs=[error_msg, input_section, results_section, question_display, results_html, results_state]
+        outputs=[error_msg, input_section, results_section, question_display, results_html, results_state, 
+                 pref_btn_1, pref_btn_2, pref_btn_3, pref_btn_4]
     )
     
     back_btn.click(
         fn=go_back,
         outputs=[input_section, results_section, error_msg]
+    )
+    
+    # Preference button handlers
+    pref_btn_1.click(
+        fn=lambda: record_preference(0),
+        outputs=[preference_status]
+    )
+    
+    pref_btn_2.click(
+        fn=lambda: record_preference(1),
+        outputs=[preference_status]
+    )
+    
+    pref_btn_3.click(
+        fn=lambda: record_preference(2),
+        outputs=[preference_status]
+    )
+    
+    pref_btn_4.click(
+        fn=lambda: record_preference(3),
+        outputs=[preference_status]
     )
 
 if __name__ == "__main__":
